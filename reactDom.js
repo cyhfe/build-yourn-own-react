@@ -1,0 +1,6 @@
+function render(){
+  
+}
+export {
+  render
+}
