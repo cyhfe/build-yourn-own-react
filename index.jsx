@@ -1,10 +1,21 @@
 import { createElement } from "react"
 import { render } from "react-dom"
 
+
+
+const App = () => {
+  return (
+    <div>
+      <p>hello</p>
+      <p>world</p>
+    </div>
+  )
+}
+
 const element = (
   <div id="el">
-    {/* <p>hello</p> */}
-    {/* <p>world</p> */}
+    text
+    <App />
   </div>
 )
 
@@ -45,10 +56,3 @@ const element = (
 
 console.log(element)
 const container = document.getElementById('root')
-// render(element, container)
-const node = document.createElement(element.type)
-node['id'] = element.props.id
-const text = document.createTextNode('')
-text['nodeValue'] = element.props.children
-node.appendChild(text)
-container.appendChild(node)
