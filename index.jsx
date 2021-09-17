@@ -1,4 +1,4 @@
-import { createElement } from "react"
+import { createElement } from "./react"
 import { render } from "react-dom"
 
 
@@ -56,3 +56,4 @@ const element = (
 
 console.log(element)
 const container = document.getElementById('root')
+render(element, container)
