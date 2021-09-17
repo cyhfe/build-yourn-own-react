@@ -1,33 +1,35 @@
-import { createElement } from "./react";
+import { createElement } from "react";
 import { render } from "./react-dom";
 
-const App = () => {
+const Foo = ({id}) => {
   return (
-    <div>
-      <p>hello</p>
-      <p>world</p>
-      <p>world</p>
-      <p>world</p>
-    </div>
-  );
-};
+    <div id={id}>foo</div>
+  )
+}
 
 const element = (
   <div id="el">
     <div>
-      <a>fasdas</a>
-      <h1>sad</h1>
-      <h1>
+      <a href="www.baidu.com">link</a>
+      <h1 style="color: red">sad</h1>
+      <h1 className="dd">
         safasdasd
         <p>sad</p>
       </h1>
       fasd fasdasd
     </div>
-    <p>world</p>
+    <Foo id="red" />
     <p>world</p>
   </div>
 );
 
+
+
+class Bar {
+  render(){
+    return <div></div>
+  }
+}
 // const element = createElement(
 //   'div',
 //   {
@@ -63,6 +65,6 @@ const element = (
 //   }
 // }
 
-console.log(element);
+console.log(element, Foo, Bar);
 const container = document.getElementById("root");
 render(element, container);
