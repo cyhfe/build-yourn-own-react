@@ -1,3 +1,5 @@
+// jsx = createElement() => vdom
+
 function createElement(type, props, ...children) {
   return {
     type,

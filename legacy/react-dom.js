@@ -1,92 +1,58 @@
-function workLoop(deadline) {
-  let shouldYield = false;
-  while (nextUnitWork && !shouldYield) {
-    nextUnitWork = performUnitWork(nextUnitWork);
-    shouldYield = deadline.timeRemaining() < 1;
-  }
-  requestIdleCallback(workLoop);
+import {Component} from "../react";
+
+const isClassComponent = comp => comp instanceof Component
+
+function renderTextNode(text, container) {
+  const textNode = document.createTextNode(text);
+  container.appendChild(textNode);
 }
 
-let nextUnitWork = null;
-requestIdleCallback(workLoop);
+function renderHostNode(element, container) {
+  const node = document.createElement(element.type);
 
-function performUnitWork(fiber) {
-  // 1. add the element to the DOM
-  // 2. create the fibers for the element’s children
-  // 3. select the next unit of work
-  // return fiber.props.children
-  if (!fiber.dom) {
-    fiber.dom = createDom(fiber);
+  // 给原生DOM节点添加属性
+  const isProperty = (key) => key !== "children";
+  Object.keys(element.props)
+    .filter(isProperty)
+    .forEach((key) => node[key] = element.props[key]);
+  // 判断子节点
+
+  // 子节点:文本节点
+  if (typeof element.props.children === "string") {
+    renderTextNode(element.props.children, node);
   }
 
-  if (fiber.parent) {
-    fiber.parent.dom.appendChild(fiber.dom);
+  // 子节点:多个子节点
+  else if (Array.isArray(element.props.children)) {
+    element.props.children.forEach((child) => render(child, node));
   }
 
-  let elements
-  if(typeof fiber.props.children === 'string') {
-
+  // 子节点:单个子节点
+  else {
+    render(element.props.children, node);
   }
-  const elements = fiber.props.children;
-  let index = 0;
-  let prevSibling = null;
 
-  while (index < elements.length) {
-    const element = elements[index];
-    const newFiber = {
-      type: element.type,
-      props: element.props,
-      parent: fiber,
-      dom: null,
-    };
-
-    if (index === 0) {
-      fiber.child = newFiber;
-    } else {
-      prevSibling.sibling = newFiber;
-    }
-
-    prevSibling = newFiber;
-    index++;
-
-    // 深度优先遍历
-
-    // 1. child
-    if (fiber.child) {
-      return fiber.child;
-    }
-
-    // 2. sibling
-    let nextFiber = fiber;
-    while (nextFiber) {
-      if (nextFiber.sibling) {
-        return nextFiber.sibling;
-      }
-
-      // 3. parent
-      nextFiber = nextFiber.parent;
-    }
-    return null
-  }
-}
-
-function createDom(fiber) {
-  let dom;
-  if (typeof fiber === "string") {
-    dom = document.createTextNode(fiber);
-  } else if (typeof fiber.type === "string") {
-    dom = document.createElement(fiber.type);
-  }
-  return dom;
+  container.appendChild(node);
 }
 
 function render(element, container) {
-  nextUnitWork = {
-    dom: container,
-    props: {
-      children: [element],
-    },
-  };
+  // 文本节点
+  if (typeof element === "string") {
+    renderTextNode(element, container);
+  }
+
+  // 原生DOM节点
+  else if (typeof element.type === "string") {
+    renderHostNode(element, container);
+  }
+
+  // 函数组件
+  else if(typeof element.type === 'function' && !isClassComponent(element.type)) {
+    const functionComponent = element.type
+    //给函数组件传递props
+    const vdom = functionComponent(element.props)
+    render(vdom, container)
+  }
 }
 
 export { render };
