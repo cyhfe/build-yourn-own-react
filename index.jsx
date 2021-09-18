@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { render } from "./react-dom";
 
-const Foo = ({id}) => {
+const Foo = ({ id }) => {
   return (
     <div id={id}>foo</div>
   )
@@ -26,7 +26,7 @@ const element = (
 
 
 class Bar {
-  render(){
+  render() {
     return <div></div>
   }
 }
@@ -68,3 +68,6 @@ class Bar {
 console.log(element, Foo, Bar);
 const container = document.getElementById("root");
 render(element, container);
+
+
+
