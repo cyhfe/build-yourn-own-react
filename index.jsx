@@ -1,35 +1,20 @@
-import { createElement } from "react";
+import { createElement } from "./react";
 import { render } from "./react-dom";
 
-const Foo = ({ id }) => {
-  return (
-    <div id={id}>foo</div>
-  )
-}
+// const Foo = ({ id }) => {
+//   return (
+//     <div id={id}>foo</div>
+//   )
+// }
 
 const element = (
   <div id="el">
-    <div>
-      <a href="www.baidu.com">link</a>
-      <h1 style="color: red">sad</h1>
-      <h1 className="dd">
-        safasdasd
-        <p>sad</p>
-      </h1>
-      fasd fasdasd
-    </div>
-    <Foo id="red" />
-    <p>world</p>
+    <div />
   </div>
 );
 
 
 
-class Bar {
-  render() {
-    return <div></div>
-  }
-}
 // const element = createElement(
 //   'div',
 //   {
@@ -65,7 +50,7 @@ class Bar {
 //   }
 // }
 
-console.log(element, Foo, Bar);
+console.log(element)
 const container = document.getElementById("root");
 render(element, container);
 
