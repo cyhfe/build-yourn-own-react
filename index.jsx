@@ -28,7 +28,7 @@ function createDom(fiber) {
   Object.keys(fiber.props)
     .filter(isProperty)
     .forEach((propName) => (dom[propName] = fiber.props[propName]));
-
+  console.log(dom);
   return dom;
 }
 
@@ -85,7 +85,7 @@ function performUnitWork(fiber) {
       }
 
       // 3. parent
-      nextFiber = nextFiber.parent;
+      return (nextFiber = nextFiber.parent);
     }
   }
 }
@@ -95,7 +95,11 @@ requestIdleCallback(workLoop);
 
 const element = (
   <div id="foo">
-    <div>hello</div>
+    <div>
+      <p>a</p>
+      <p>b</p>
+      <p>c</p>
+    </div>
     <div>world</div>
   </div>
 );

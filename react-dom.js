@@ -79,7 +79,7 @@ function createDom(fiber) {
   Object.keys(fiber.props)
     .filter(isProperty)
     .forEach((propName) => (dom[propName] = fiber.props[propName]));
-
+  console.log(dom)
   return dom;
 }
 
