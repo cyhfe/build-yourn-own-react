@@ -4,7 +4,7 @@ import { createElement } from "./react";
 function workLoop(deadline) {
   let shouldYield = false;
   while (nextUnitWork && !shouldYield) {
-    nextUnitWork = performUnitWork(nextUnitWork);
+    nextUnitWork = performUnitOfWork(nextUnitWork);
     shouldYield = deadline.timeRemaining() < 1;
   }
   requestIdleCallback(workLoop);
@@ -32,6 +32,7 @@ function createDom(fiber) {
   return dom;
 }
 
+
 function render(element, container) {
   nextUnitWork = {
     dom: container,
@@ -41,17 +42,27 @@ function render(element, container) {
   };
 }
 
-// 1. 创建该dom并添加到父节点
-// 2. 创建children fiber
-// 3. 返回下一个unitWork
-function performUnitWork(fiber) {
-  let index = 0;
-  let prevSibling = null;
+// 1. 执行当前任务
+//  一个fiber进入函数， 创建dom并append到parent
+// 2. 返回下一个任务
+//  遍历children， 为每一个child fiber设置child, parent, sibling
+//  如果有child， 将它设为下一个work
+//  如果没有child，查找它的sibling
+//  如果没有sibing， 查找它的parent的sibling
+
+
+function performUnitOfWork(fiber) {
 
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
   }
 
+  if (fiber.parent) {
+    fiber.parent.dom.appendChild(fiber.dom)
+  }
+
+  let index = 0
+  let prevSibling = null
   const elements = fiber.props.children;
   while (index < elements.length) {
     const element = elements[index];
@@ -70,23 +81,22 @@ function performUnitWork(fiber) {
 
     prevSibling = newFiber;
     index++;
+  }
+  // 深度优先遍历
+  // 1. child
+  if (fiber.child) {
+    return fiber.child;
+  }
 
-    // 深度优先遍历
-    // 1. child
-    if (fiber.child) {
-      return fiber.child;
+  // 2. sibling
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibling) {
+      return nextFiber.sibling;
     }
 
-    // 2. sibling
-    let nextFiber = fiber;
-    while (nextFiber) {
-      if (nextFiber.sibling) {
-        return nextFiber.sibling;
-      }
-
-      // 3. parent
-      return (nextFiber = nextFiber.parent);
-    }
+    // 3. parent
+    nextFiber = nextFiber.parent
   }
 }
 
