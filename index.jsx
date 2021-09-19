@@ -1,5 +1,35 @@
 import { createElement } from "./react";
 
+function commitRoot() {
+  deletions.forEach(commitWork)
+  commitWork(wipRoot.child)
+  currentRoot = wipRoot
+  wipRoot = null
+}
+
+function commitWork(fiber) {
+  if (!fiber) return
+
+
+  const domParent = fiber.parent.dom
+
+  if (fiber.effectTag === "PLACEMENT" && fiber.dom != null) {
+    domParent.appendChild(fiber.dom)
+  } else if (fiber.effectTag === "UPDATE" &&
+    fiber.dom != null) {
+    updateDom(
+      fiber.dom,
+      fiber.alternate.props,
+      fiber.props
+    )
+  } else if (fiber.effectTag === "DELETION") {
+    domParent.removeChild(fiber.dom)
+
+  }
+  commitWork(fiber.child)
+  commitWork(fiber.sibling)
+}
+
 // concurrent mode
 function workLoop(deadline) {
   let shouldYield = false;
@@ -7,6 +37,11 @@ function workLoop(deadline) {
     nextUnitWork = performUnitOfWork(nextUnitWork);
     shouldYield = deadline.timeRemaining() < 1;
   }
+
+  if (!nextUnitWork && wipRoot) {
+    commitRoot()
+  }
+
   requestIdleCallback(workLoop);
 }
 
@@ -32,14 +67,17 @@ function createDom(fiber) {
   return dom;
 }
 
-
 function render(element, container) {
-  nextUnitWork = {
+  wipRoot = {
     dom: container,
     props: {
       children: [element],
     },
+    alternate: currentRoot
   };
+  deletions = []
+  nextUnitWork = wipRoot
+
 }
 
 // 1. 执行当前任务
@@ -49,39 +87,14 @@ function render(element, container) {
 //  如果有child， 将它设为下一个work
 //  如果没有child，查找它的sibling
 //  如果没有sibing， 查找它的parent的sibling
-
-
 function performUnitOfWork(fiber) {
 
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
   }
 
-  if (fiber.parent) {
-    fiber.parent.dom.appendChild(fiber.dom)
-  }
-
-  let index = 0
-  let prevSibling = null
   const elements = fiber.props.children;
-  while (index < elements.length) {
-    const element = elements[index];
-    const newFiber = {
-      type: element.type,
-      props: element.props,
-      parent: fiber,
-      dom: null,
-    };
-
-    if (index === 0) {
-      fiber.child = newFiber;
-    } else {
-      prevSibling.sibling = newFiber;
-    }
-
-    prevSibling = newFiber;
-    index++;
-  }
+  reconcileChildren(fiber, elements)
   // 深度优先遍历
   // 1. child
   if (fiber.child) {
@@ -100,7 +113,64 @@ function performUnitOfWork(fiber) {
   }
 }
 
+function reconcileChildren(wipFiber, elements) {
+  let index = 0
+  let prevSibling = null
+
+  let oldFiber = wipFiber.alternate && wipFiber.alternate.child
+
+  while (index < elements.length || oldFiber != null) {
+    const element = elements[index];
+    let newFiber = null
+
+    const sameType = oldFiber && element && element.type === oldFiber.type
+
+    if (sameType) {
+      newFiber = {
+        type: oldFiber.type,
+        props: element.props,
+        dom: oldFiber.dom,
+        parent: wipFiber,
+        alternate: oldFiber,
+        effectTag: "UPDATE"
+      }
+    }
+
+    if (element && !sameType) {
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        dom: null,
+        parent: wipFiber,
+        alternate: null,
+        effectTag: "PLACEMENT"
+      }
+    }
+
+    if (oldFiber && !sameType) {
+      oldFiber.effectTag = "DELETION"
+      deletions.push(oldFiber)
+    }
+
+    if (oldFiber) {
+      oldFiber = oldFiber.sibling
+    }
+
+    if (index === 0) {
+      wipFiber.child = newFiber;
+    } else {
+      prevSibling.sibling = newFiber;
+    }
+
+    prevSibling = newFiber;
+    index++;
+  }
+}
+
 let nextUnitWork = null;
+let wipRoot = null
+let currentRoot = null
+let deletions = null
 requestIdleCallback(workLoop);
 
 const element = (
@@ -116,3 +186,4 @@ const element = (
 
 const root = document.getElementById("root");
 render(element, root);
+
