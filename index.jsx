@@ -149,11 +149,6 @@ function render(element, container) {
   nextUnitOfWork = wipRoot
 }
 
-let nextUnitOfWork = null
-let currentRoot = null
-let wipRoot = null
-let deletions = null
-
 function workLoop(deadline) {
   let shouldYield = false
   while (nextUnitOfWork && !shouldYield) {
@@ -191,9 +186,6 @@ function performUnitOfWork(fiber) {
     nextFiber = nextFiber.parent
   }
 }
-
-let wipFiber = null
-let hookIndex = null
 
 function updateFunctionComponent(fiber) {
   wipFiber = fiber
@@ -299,15 +291,15 @@ function reconcileChildren(wipFiber, elements) {
   }
 }
 
-const Didact = {
-  createElement,
-  render,
-  useState,
-}
+let wipFiber = null
+let hookIndex = null
+let nextUnitOfWork = null
+let currentRoot = null
+let wipRoot = null
+let deletions = null
 
-/** @jsx Didact.createElement */
 function Counter() {
-  const [state, setState] = Didact.useState(1)
+  const [state, setState] = useState(1)
   return (
     <h1 onClick={() => setState(c => c + 1)}>
       Count: {state}
@@ -316,4 +308,5 @@ function Counter() {
 }
 const element = <Counter />
 const container = document.getElementById("root")
-Didact.render(element, container)
+render(element, container)
+
